@@ -10,19 +10,14 @@ X = df_banknote.iloc[:, [0,1,2,3]]
 Y = df_banknote.iloc[:, [4]]
 
 X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
-print(type(X_train))
 # ann = ANN(inputs=X.shape[1], layers=[Layer(function="sigmoid", n_perceptrons=1, n_inputs=X.shape[1], id=0, batch_size=X.shape[0])], Xdata=X, Ydata=Y)
 
 # ann = ANN(inputs=X.shape[1], layers=[Layer(function="sigmoid", n_perceptrons=3, n_inputs=X.shape[1], id=0, batch_size=X.shape[0]),
 #                             Layer(function="sigmoid", n_perceptrons=1, n_inputs=3, id=1, batch_size=X.shape[0])], Xdata=X, Ydata=Y)
 
-architecture =[ create_layer("sigmoid", 2), create_layer("relu", 2), create_layer("tanh", 2)]
+architecture =[ create_layer("tanh", 2), create_layer("relu", 2), create_layer("sigmoid", 1)]
 ann = ANN( layers=architecture, 
-          Xdata=X_train.to_numpy(), Ydata=y_train.to_numpy())
-
-
-ann.forward_pass()
-ann.get_accuracy()
+          Xdata=X_train.to_numpy(), Ydata=y_train.to_numpy(), cost_fn="cross-entropy")
 
 """
 
@@ -70,6 +65,7 @@ def get_particle_cost(particle_position):
 
 
 def pso(num_particles: int, ann: ANN, max_iter: int):
+    np.random.seed(4)
     particles_position = np.random.rand(num_particles, ann.get_total_parameters())
     particles_cost = get_particles_cost(particles_position=particles_position, ann=ann)
     particles_velocity = np.random.rand(num_particles, ann.get_total_parameters())
@@ -114,7 +110,7 @@ position, cost= pso(num_particles=50, ann=ann, max_iter=200)
 testing_ANN =  ANN(architecture, Xdata=X_test.to_numpy(), Ydata=y_test.to_numpy())
 testing_ANN.fill_weights(position)
 testing_ANN.forward_pass()
-print("get accuracy", testing_ANN.get_accuracy())
-print (f"position {position}   cost {cost}")
+print("accuracy", testing_ANN.get_accuracy())
+print (f"position {position}  cost {cost}")
 # print ("postcall")
 
