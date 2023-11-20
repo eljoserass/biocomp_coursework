@@ -1,27 +1,33 @@
 
 
 def sigmoid(x):
-        import numpy as np
-        return 1 / (1 + np.exp(-x))
+    import numpy as np
+    return 1 / (1 + np.exp(-x))
     
 def dsigmoid(x):
-        return sigmoid(x=x) * (1 - sigmoid(x=x))
+    return sigmoid(x=x) * (1 - sigmoid(x=x))
     
 def relu(x):
-        import numpy as np
-        return np.maximum(0.0, x)
+    import numpy as np
+    return np.maximum(0.0, x)
     
 def drelu(x):
-        import numpy as np
-        return np.where(x > 0, 1, 0)
+    import numpy as np
+    return np.where(x > 0, 1, 0)
     
 def tanh(x):
-        import numpy as np
-        return np.tanh(x)
+    import numpy as np
+    return np.tanh(x)
+
+
+def softmax(x):
+    import numpy as np
+    exp_x = np.exp(x - np.max(x, axis=-1, keepdims=True))  # Subtracting max for numerical stability
+    return exp_x / np.sum(exp_x, axis=-1, keepdims=True)
     
 def dtanh(x):
-        import numpy as np
-        return 1 - np.square(np.tanh(x)) 
+    import numpy as np
+    return 1 - np.square(np.tanh(x))
 
 
 activation_functions: dict = {"sigmoid": sigmoid,
@@ -29,7 +35,8 @@ activation_functions: dict = {"sigmoid": sigmoid,
                               "relu": relu,
                               "drelu": drelu,
                               "tanh": tanh,
-                              "dtanh": dtanh
+                              "dtanh": dtanh,
+                              "softmax": softmax
                               }
 
 class create_layer:
@@ -62,6 +69,8 @@ class Layer:
             out = perceptron.input(X)
             output[index] = out
             index += 1
+        if self.function == "softmax":
+            return activation_functions["softmax"](output.T)
         return output.T
     
     def print(self):
@@ -82,6 +91,8 @@ class Perceptron:
     def input(self, X):
         import numpy as np
         # print (f"X.shape {X.shape}  W.shape {self.W.shape}  b {self.b}")
+        if self.act_function == softmax:
+            return np.dot(X, self.W) + self.b
         self.output = self.act_function(np.dot(X, self.W) + self.b)
         return self.output
     
@@ -131,11 +142,13 @@ class ANN:
             layers.append(Layer(function=layers_info[i].function, n_perceptrons=layers_info[i].n_perceptrons, n_inputs= layers_info[i- 1].n_perceptrons, id=i, batch_size=self.batch))
         
         return layers
-    def get_accuracy(self, validate_Y = None, sigmoid_threshold = 0.5):
+
+
+    def get_accuracy(self, validate_Y = None, sigmoid_threshold = 0.5, output_activation:str = "sigmoid"):
+        
+        def count_sigmoid():
             correct_predictions = 0
-            output_pred = None
             for i in range(len(self.Y)):
-                # print (self.output[i])
                 if self.output[i] > sigmoid_threshold:
                     output_pred = 1
                 else:
@@ -143,7 +156,25 @@ class ANN:
                 if output_pred == self.Y[i]:
                     correct_predictions += 1
             print (f"correct_predictions {correct_predictions}/{len(self.Y)}")
-            return correct_predictions / len(self.Y)
+            return correct_predictions
+        
+        def count_softmax():
+            import numpy as np
+            correct_predictions = 0
+            for i in range(len(self.Y)):
+                # print (f"p1: {self.output[i][0]}, p2 {self.output[i][1]} | actually {self.Y[i]}")
+                if np.argmax(self.output[i]) == self.Y[i]:
+                    correct_predictions += 1
+            print (f"correct_predictions {correct_predictions}/{len(self.Y)}")
+            return correct_predictions
+
+        correct_predictions = 0
+        if output_activation == "sigmoid":
+            correct_predictions =  count_sigmoid()
+        if output_activation == "softmax":
+            correct_predictions = count_softmax()
+    
+        return correct_predictions / len(self.Y)
         
     def forward_pass(self):
         import numpy as np

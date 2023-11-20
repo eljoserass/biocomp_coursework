@@ -15,7 +15,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_
 # ann = ANN(inputs=X.shape[1], layers=[Layer(function="sigmoid", n_perceptrons=3, n_inputs=X.shape[1], id=0, batch_size=X.shape[0]),
 #                             Layer(function="sigmoid", n_perceptrons=1, n_inputs=3, id=1, batch_size=X.shape[0])], Xdata=X, Ydata=Y)
 
-architecture =[ create_layer("tanh", 2), create_layer("relu", 2), create_layer("sigmoid", 1)]
+architecture =[ create_layer("tanh", 2), create_layer("relu", 2), create_layer("softmax", 2)]
 ann = ANN( layers=architecture, 
           Xdata=X_train.to_numpy(), Ydata=y_train.to_numpy(), cost_fn="cross-entropy")
 
@@ -110,7 +110,7 @@ position, cost= pso(num_particles=50, ann=ann, max_iter=200)
 testing_ANN =  ANN(architecture, Xdata=X_test.to_numpy(), Ydata=y_test.to_numpy())
 testing_ANN.fill_weights(position)
 testing_ANN.forward_pass()
-print("accuracy", testing_ANN.get_accuracy())
+print("accuracy", testing_ANN.get_accuracy(output_activation="softmax"))
 print (f"position {position}  cost {cost}")
 # print ("postcall")
 
