@@ -2,25 +2,23 @@ from ANN import ANN, create_layer
 
 import numpy as np
 import pandas as pd
+from sklearn.model_selection import train_test_split
 
+df_banknote = pd.read_csv("data_banknote_authentication.csv",  header=None)
 
-df = pd.read_csv("data_banknote_authentication.csv")
+X = df_banknote.iloc[:, [0,1,2,3]]
+Y = df_banknote.iloc[:, [4]]
 
-df.head()
-
-X = np.delete(df.to_numpy(), 4, 1)
-Y = np.delete(df.to_numpy(), [0,1,2,3], 1)
-
+X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
+print(type(X_train))
 # ann = ANN(inputs=X.shape[1], layers=[Layer(function="sigmoid", n_perceptrons=1, n_inputs=X.shape[1], id=0, batch_size=X.shape[0])], Xdata=X, Ydata=Y)
 
 # ann = ANN(inputs=X.shape[1], layers=[Layer(function="sigmoid", n_perceptrons=3, n_inputs=X.shape[1], id=0, batch_size=X.shape[0]),
 #                             Layer(function="sigmoid", n_perceptrons=1, n_inputs=3, id=1, batch_size=X.shape[0])], Xdata=X, Ydata=Y)
 
-
-
-ann = ANN( layers=[ create_layer("sigmoid", 10), create_layer("relu", 3)
-                            ], 
-          Xdata=X, Ydata=Y)
+architecture =[ create_layer("sigmoid", 2), create_layer("relu", 2), create_layer("tanh", 2)]
+ann = ANN( layers=architecture, 
+          Xdata=X_train.to_numpy(), Ydata=y_train.to_numpy())
 
 
 ann.forward_pass()
@@ -112,8 +110,11 @@ def pso(num_particles: int, ann: ANN, max_iter: int):
         
     
 # print ("pre call")
-position, cost= pso(num_particles=15, ann=ann, max_iter=200)
-
+position, cost= pso(num_particles=50, ann=ann, max_iter=200)
+testing_ANN =  ANN(architecture, Xdata=X_test.to_numpy(), Ydata=y_test.to_numpy())
+testing_ANN.fill_weights(position)
+testing_ANN.forward_pass()
+print("get accuracy", testing_ANN.get_accuracy())
 print (f"position {position}   cost {cost}")
 # print ("postcall")
 

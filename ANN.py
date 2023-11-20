@@ -105,16 +105,17 @@ class ANN:
         self.n_layers = len(layers)
         self.X = Xdata
         self.Y = Ydata
-        self.output = None
+        self.batch = self.X.shape[0]
+        self.output :float = None
         self.cost = None
         self.accuracy = 0
         self.layers = self.create_layers(layers)
     
     def create_layers(self, layers_info: list):
-        layers = [Layer(function=layers_info[0].function, n_perceptrons=layers_info[0].n_perceptrons, n_inputs=self.X.shape[1], id=0, batch_size=self.X.shape[0])]
+        layers = [Layer(function=layers_info[0].function, n_perceptrons=layers_info[0].n_perceptrons, n_inputs=self.X.shape[1], id=0, batch_size=self.batch)]
         
         for i in range(1, len(layers_info)):
-            layers.append(Layer(function=layers_info[i].function, n_perceptrons=layers_info[i].n_perceptrons, n_inputs= layers_info[i- 1].n_perceptrons, id=i, batch_size=self.X.shape[0]))
+            layers.append(Layer(function=layers_info[i].function, n_perceptrons=layers_info[i].n_perceptrons, n_inputs= layers_info[i- 1].n_perceptrons, id=i, batch_size=self.batch))
         
         return layers
     def get_accuracy(self, validate_Y = None):
@@ -150,7 +151,7 @@ class ANN:
         """
         import numpy as np
 
-        return np.mean((self.output - self.Y) ** 2 )
+        return np.mean(self.Y * np.log(self.output)  + (1 - self.output) * np.log(1 - self.output)) / self.batch
 
     def get_total_parameters(self):
         n_parameters = 0
