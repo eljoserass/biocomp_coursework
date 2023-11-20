@@ -52,7 +52,7 @@ def update_particle_velocity_position(particles_position, particles_velocity ,pa
                                                    )
     return particles_position + particles_velocity, particles_velocity
 
-def get_particle_cost(particle_position):
+def get_particle_cost(particle_position, ann):
     ann.fill_weights(particle=particle_position)
     ann.forward_pass()
     return ann.get_cost()
@@ -68,7 +68,7 @@ def pso(num_particles: int, ann: ANN, max_iter: int, **kwargs):
     particles_position_pbest = np.array(particles_position, copy=True)
     particles_position_pbest_cost =  get_particles_cost(particles_position=particles_position_pbest, ann=ann)
     particle_position_gbest = particles_position[np.argmin(particles_cost)]
-    particle_position_gbest_cost = get_particle_cost(particle_position_gbest)
+    particle_position_gbest_cost = get_particle_cost(particle_position_gbest, ann=ann)
     c1 = np.random.rand(1,)[0] # maybe not random
     # c1 = 0.4
     c2 = np.random.rand(1,)[0] # maybe not random

@@ -1,4 +1,4 @@
 particles,iterations,architecture,cost_fn,seed
-50,200,tanh:2;relu:2;softmax:2,cross-entropy,4
-50,200,tanh:2;relu:2;softmax:2,cross-entropy,1
-50,200,tanh:2;relu:2;softmax:2,mse,5
+50,10,tanh:2;relu:2;softmax:2,cross-entropy,4
+50,10,tanh:2;relu:2;softmax:2,cross-entropy,5
+50,10,tanh:2;relu:2;softmax:2,cross-entropy,6

@@ -173,8 +173,8 @@ class ANN:
             correct_predictions =  count_sigmoid()
         if output_activation == "softmax":
             correct_predictions = count_softmax()
-    
-        return correct_predictions / len(self.Y)
+        result = correct_predictions / len(self.Y)
+        return f"{correct_predictions}/{len(self.Y)}", result
         
     def forward_pass(self):
         import numpy as np
