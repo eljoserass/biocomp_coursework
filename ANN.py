@@ -95,11 +95,19 @@ class Perceptron:
         self.print_wb()
         print ("\t\t-")
     
-        
+def mean_squared_error(y_true, y_pred):
+    import numpy as np
+    return np.mean((y_true - y_pred) ** 2)
+
+def binary_cross_entropy(y_true, y_pred):
+    import numpy as np
+    epsilon = 1e-15  # Small constant to avoid log(0)
+    y_pred = np.clip(y_pred, epsilon, 1 - epsilon)  # Clip values to avoid numerical instability
+    return -np.mean(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
 
 class ANN:
     
-    def __init__(self,  layers: list, Xdata, Ydata):
+    def __init__(self,  layers: list, Xdata, Ydata, cost_fn:str = "mse"):
         
         self.inputs = Xdata[1]
         self.n_layers = len(layers)
@@ -110,6 +118,11 @@ class ANN:
         self.cost = None
         self.accuracy = 0
         self.layers = self.create_layers(layers)
+        self.cost_fn = cost_fn
+        self.cost_functions = {
+                'mse': lambda y_true, y_pred: mean_squared_error(y_true, y_pred),
+                'cross-entropy': lambda y_true, y_pred: binary_cross_entropy(y_true, y_pred)
+            }
     
     def create_layers(self, layers_info: list):
         layers = [Layer(function=layers_info[0].function, n_perceptrons=layers_info[0].n_perceptrons, n_inputs=self.X.shape[1], id=0, batch_size=self.batch)]
@@ -122,13 +135,14 @@ class ANN:
             correct_predictions = 0
             output_pred = None
             for i in range(len(self.Y)):
+                # print (self.output[i])
                 if self.output[i] > sigmoid_threshold:
                     output_pred = 1
                 else:
                     output_pred = 0
                 if output_pred == self.Y[i]:
                     correct_predictions += 1
-            print (f"correct_predictions {correct_predictions}")
+            print (f"correct_predictions {correct_predictions}/{len(self.Y)}")
             return correct_predictions / len(self.Y)
         
     def forward_pass(self):
@@ -144,7 +158,7 @@ class ANN:
             # print (f"output.shape {output.shape}")
             # print("-----------")
         self.output = output
-        print(output)
+        # print(output)
         self.cost = self.get_cost()
     
     
@@ -154,9 +168,10 @@ class ANN:
         Returns:
             np.array: matrix with the cost of the output
         """
+        
         import numpy as np
-
-        return np.mean(self.Y * np.log(self.output)  + (1 - self.output) * np.log(1 - self.output)) / self.batch
+        return self.cost_functions[self.cost_fn](y_true=self.Y, y_pred=self.output)
+        # return np.mean(self.Y * np.log(self.output)  + (1 - self.output) * np.log(1 - self.output)) / self.batch
 
     def get_total_parameters(self):
         n_parameters = 0
