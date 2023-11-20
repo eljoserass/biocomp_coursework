@@ -118,13 +118,18 @@ class ANN:
             layers.append(Layer(function=layers_info[i].function, n_perceptrons=layers_info[i].n_perceptrons, n_inputs= layers_info[i- 1].n_perceptrons, id=i, batch_size=self.batch))
         
         return layers
-    def get_accuracy(self, validate_Y = None):
-        import numpy as np
-        threshold = 0.86
-        output_pred = (self.output > threshold).astype(int)
-        correct_predictions = np.sum(np.argmax(output_pred, axis=1) == np.argmax(self.Y, axis=1))
-        
-        return correct_predictions / len(self.Y)
+    def get_accuracy(self, validate_Y = None, sigmoid_threshold = 0.5):
+            correct_predictions = 0
+            output_pred = None
+            for i in range(len(self.Y)):
+                if self.output[i] > sigmoid_threshold:
+                    output_pred = 1
+                else:
+                    output_pred = 0
+                if output_pred == self.Y[i]:
+                    correct_predictions += 1
+            print (f"correct_predictions {correct_predictions}")
+            return correct_predictions / len(self.Y)
         
     def forward_pass(self):
         import numpy as np
