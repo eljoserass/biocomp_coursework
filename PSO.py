@@ -4,27 +4,21 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-df_banknote = pd.read_csv("data_banknote_authentication.csv",  header=None)
+# df_banknote = pd.read_csv("data_banknote_authentication.csv",  header=None)
 
-X = df_banknote.iloc[:, [0,1,2,3]]
-Y = df_banknote.iloc[:, [4]]
+# X = df_banknote.iloc[:, [0,1,2,3]]
+# Y = df_banknote.iloc[:, [4]]
 
-X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
-# ann = ANN(inputs=X.shape[1], layers=[Layer(function="sigmoid", n_perceptrons=1, n_inputs=X.shape[1], id=0, batch_size=X.shape[0])], Xdata=X, Ydata=Y)
+# X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
+# # ann = ANN(inputs=X.shape[1], layers=[Layer(function="sigmoid", n_perceptrons=1, n_inputs=X.shape[1], id=0, batch_size=X.shape[0])], Xdata=X, Ydata=Y)
 
-# ann = ANN(inputs=X.shape[1], layers=[Layer(function="sigmoid", n_perceptrons=3, n_inputs=X.shape[1], id=0, batch_size=X.shape[0]),
-#                             Layer(function="sigmoid", n_perceptrons=1, n_inputs=3, id=1, batch_size=X.shape[0])], Xdata=X, Ydata=Y)
+# # ann = ANN(inputs=X.shape[1], layers=[Layer(function="sigmoid", n_perceptrons=3, n_inputs=X.shape[1], id=0, batch_size=X.shape[0]),
+# #                             Layer(function="sigmoid", n_perceptrons=1, n_inputs=3, id=1, batch_size=X.shape[0])], Xdata=X, Ydata=Y)
 
-architecture =[ create_layer("tanh", 2), create_layer("relu", 2), create_layer("softmax", 2)]
-ann = ANN( layers=architecture, 
-          Xdata=X_train.to_numpy(), Ydata=y_train.to_numpy(), cost_fn="cross-entropy")
+# architecture =[ create_layer("tanh", 2), create_layer("relu", 2), create_layer("softmax", 2)]
+# ann = ANN( layers=architecture, 
+#           Xdata=X_train.to_numpy(), Ydata=y_train.to_numpy(), cost_fn="cross-entropy")
 
-"""
-
-particles = [[[w1,w2,w2], b1], [w3,w4,w5], b2, ....]
-
-
-"""
 
 def get_particles_cost(particles_position, ann: ANN):
     particles_cost = np.array([])
@@ -63,9 +57,9 @@ def get_particle_cost(particle_position):
     ann.forward_pass()
     return ann.get_cost()
 
-
-def pso(num_particles: int, ann: ANN, max_iter: int):
-    np.random.seed(4)
+def pso(num_particles: int, ann: ANN, max_iter: int, **kwargs):
+    if "seed" in kwargs:
+        np.random.seed(kwargs["seed"])
     particles_position = np.random.rand(num_particles, ann.get_total_parameters())
     particles_cost = get_particles_cost(particles_position=particles_position, ann=ann)
     particles_velocity = np.random.rand(num_particles, ann.get_total_parameters())
@@ -80,8 +74,9 @@ def pso(num_particles: int, ann: ANN, max_iter: int):
     c2 = np.random.rand(1,)[0] # maybe not random
     # c2 = 0.5
 
-    for _ in range(max_iter):
-        
+    for iteration in range(max_iter):
+        if iteration % 10 == 0:
+            print (f"Iteration: {iteration}")
         particles_cost = get_particles_cost(particles_position=particles_position, ann=ann) 
         particles_position_pbest_cost =  get_particles_cost(particles_position=particles_position_pbest, ann=ann)
         for i in range(num_particles):
@@ -105,12 +100,12 @@ def pso(num_particles: int, ann: ANN, max_iter: int):
 
         
     
-# print ("pre call")
-position, cost= pso(num_particles=50, ann=ann, max_iter=200)
-testing_ANN =  ANN(architecture, Xdata=X_test.to_numpy(), Ydata=y_test.to_numpy())
-testing_ANN.fill_weights(position)
-testing_ANN.forward_pass()
-print("accuracy", testing_ANN.get_accuracy(output_activation="softmax"))
-print (f"position {position}  cost {cost}")
+# # print ("pre call")
+# position, cost= pso(num_particles=50, ann=ann, max_iter=200, seed=4)
+# testing_ANN =  ANN(architecture, Xdata=X_test.to_numpy(), Ydata=y_test.to_numpy())
+# testing_ANN.fill_weights(position)
+# testing_ANN.forward_pass()
+# print("accuracy", testing_ANN.get_accuracy(output_activation="softmax"))
+# print (f"position {position}  cost {cost}")
 # print ("postcall")
 

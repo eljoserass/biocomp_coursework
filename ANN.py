@@ -144,7 +144,7 @@ class ANN:
         return layers
 
 
-    def get_accuracy(self, validate_Y = None, sigmoid_threshold = 0.5, output_activation:str = "sigmoid"):
+    def get_accuracy(self,  sigmoid_threshold = 0.5, output_activation:str = "sigmoid"):
         
         def count_sigmoid():
             correct_predictions = 0
