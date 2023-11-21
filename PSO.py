@@ -4,22 +4,6 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-# df_banknote = pd.read_csv("data_banknote_authentication.csv",  header=None)
-
-# X = df_banknote.iloc[:, [0,1,2,3]]
-# Y = df_banknote.iloc[:, [4]]
-
-# X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
-# # ann = ANN(inputs=X.shape[1], layers=[Layer(function="sigmoid", n_perceptrons=1, n_inputs=X.shape[1], id=0, batch_size=X.shape[0])], Xdata=X, Ydata=Y)
-
-# # ann = ANN(inputs=X.shape[1], layers=[Layer(function="sigmoid", n_perceptrons=3, n_inputs=X.shape[1], id=0, batch_size=X.shape[0]),
-# #                             Layer(function="sigmoid", n_perceptrons=1, n_inputs=3, id=1, batch_size=X.shape[0])], Xdata=X, Ydata=Y)
-
-# architecture =[ create_layer("tanh", 2), create_layer("relu", 2), create_layer("softmax", 2)]
-# ann = ANN( layers=architecture, 
-#           Xdata=X_train.to_numpy(), Ydata=y_train.to_numpy(), cost_fn="cross-entropy")
-
-
 def get_particles_cost(particles_position, ann: ANN):
     particles_cost = np.array([])
     
@@ -57,26 +41,29 @@ def get_particle_cost(particle_position, ann):
     ann.forward_pass()
     return ann.get_cost()
 
+def get_variable_parameters(kwargs_pso):
+    
+    return
+
 def pso(num_particles: int, ann: ANN, max_iter: int, **kwargs):
-    if "seed" in kwargs:
-        np.random.seed(kwargs["seed"])
+    np.random.seed(kwargs.get("seed"))
+    particles_inertia = np.random.rand(num_particles, ) if kwargs.get("particles_inertia") is None\
+                        else np.full(num_particles, kwargs.get("particles_inertia"))
+    c1 = np.random.rand(1,)[0] if  kwargs.get("c1") is None else kwargs.get("c1")
+    c2 = np.random.rand(1,)[0] if  kwargs.get("c2") is None else kwargs.get("c2")
+
     particles_position = np.random.rand(num_particles, ann.get_total_parameters())
     particles_cost = get_particles_cost(particles_position=particles_position, ann=ann)
     particles_velocity = np.random.rand(num_particles, ann.get_total_parameters())
-    particles_inertia = np.random.rand(num_particles, ) # maybe not random and not different for each
-    # particles_inertia = np.full(num_particles, 0.7)
     particles_position_pbest = np.array(particles_position, copy=True)
     particles_position_pbest_cost =  get_particles_cost(particles_position=particles_position_pbest, ann=ann)
     particle_position_gbest = particles_position[np.argmin(particles_cost)]
     particle_position_gbest_cost = get_particle_cost(particle_position_gbest, ann=ann)
-    c1 = np.random.rand(1,)[0] # maybe not random
-    # c1 = 0.4
-    c2 = np.random.rand(1,)[0] # maybe not random
-    # c2 = 0.5
+    particle_gbest_inertia = None
 
     for iteration in range(max_iter):
         if iteration % 10 == 0:
-            print (f"Iteration: {iteration}")
+            print (f"\t- Iteration: {iteration}")
         particles_cost = get_particles_cost(particles_position=particles_position, ann=ann) 
         particles_position_pbest_cost =  get_particles_cost(particles_position=particles_position_pbest, ann=ann)
         for i in range(num_particles):
@@ -86,7 +73,8 @@ def pso(num_particles: int, ann: ANN, max_iter: int, **kwargs):
             if  particles_cost[i] < particle_position_gbest_cost:
                 particle_position_gbest = np.copy(particles_position[i])
                 particle_position_gbest_cost = particles_cost[i]
-            
+                particle_gbest_inertia = particles_inertia[i]
+                
             
             particles_velocity[i] = update_particles_velocity(particles_position=particles_position[i],
                                                     particles_velocity=particles_velocity[i],
@@ -96,16 +84,10 @@ def pso(num_particles: int, ann: ANN, max_iter: int, **kwargs):
                                                     c1=c1,
                                                     c2=c2)
             particles_position[i] = particles_position[i] + particles_velocity[i]
-    return particle_position_gbest, particle_position_gbest_cost
-
-        
-    
-# # print ("pre call")
-# position, cost= pso(num_particles=50, ann=ann, max_iter=200, seed=4)
-# testing_ANN =  ANN(architecture, Xdata=X_test.to_numpy(), Ydata=y_test.to_numpy())
-# testing_ANN.fill_weights(position)
-# testing_ANN.forward_pass()
-# print("accuracy", testing_ANN.get_accuracy(output_activation="softmax"))
-# print (f"position {position}  cost {cost}")
-# print ("postcall")
-
+    return {
+            "gbest_position": particle_position_gbest, 
+            "gbest_cost": particle_position_gbest_cost,
+            "gbest_inertia": particle_gbest_inertia,
+            "particle_c1": c1,
+            "particle_c2": c2
+            } 
