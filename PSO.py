@@ -88,6 +88,6 @@ def pso(num_particles: int, ann: ANN, max_iter: int, **kwargs):
             "gbest_position": particle_position_gbest, 
             "gbest_cost": particle_position_gbest_cost,
             "gbest_inertia": particle_gbest_inertia,
-            "particle_c1": c1,
-            "particle_c2": c2
+            "c1": c1,
+            "c2": c2
             } 

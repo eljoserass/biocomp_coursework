@@ -21,7 +21,8 @@ def write_experiments(results: dict,
                       db_path: str
                   ) -> pd.DataFrame:
     df = pd.DataFrame(results)
-    df.to_csv(db_path, mode='a', index=False, header=True)
+    # TODO check if file is created and if header is created
+    df.to_csv(db_path, mode='a', index=False, header=False)
     return df
 
 def str_to_layers(architecture_str: str):
@@ -43,8 +44,8 @@ def run_experiments(X_train, X_test, y_train, y_test, config_path: str, session_
         
         "particle_cost": [],
         "particle_inertia": [],
-        "particle_c1": [],
-        "particle_c2": [],
+        "c1": [],
+        "c2": [],
         "cost_fn": [],
         "accuracy": [],
         "correct_predictions": [],
@@ -66,8 +67,8 @@ def run_experiments(X_train, X_test, y_train, y_test, config_path: str, session_
         pso_args = {
             "seed": None if np.isnan(row["seed"]) else int(row["seed"]),
             "c1": None if np.isnan(row["c1"]) else float(row["c1"]),
-            "c2": None if np.isnan(row["c1"]) else float(row["c2"]),
-            "inertia": None if np.isnan(row["inertia"]) else float(row["inertia"]),
+            "c2": None if np.isnan(row["c2"]) else float(row["c2"]),
+            "particles_inertia": None if np.isnan(row["inertia"]) else float(row["inertia"]),
         }
         
         pso_result = pso(num_particles=row["particles"], max_iter=row["iterations"], ann=ann, **pso_args)
@@ -77,8 +78,8 @@ def run_experiments(X_train, X_test, y_train, y_test, config_path: str, session_
         
         results["particle_cost"].append(pso_result["gbest_cost"])
         results["particle_inertia"].append(pso_result["gbest_inertia"])
-        results["particle_c1"].append(pso_result["particle_c1"])
-        results["particle_c2"].append(pso_result["particle_c2"])
+        results["c1"].append(pso_result["c1"])
+        results["c2"].append(pso_result["c2"])
         results["cost_fn"].append(row["cost_fn"])
         correct_predictions_print, accuracy = ann.get_accuracy(output_activation=get_output_activation(row["architecture"]))
         results["accuracy"].append(accuracy)
