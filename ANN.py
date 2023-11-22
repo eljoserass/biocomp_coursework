@@ -129,6 +129,7 @@ class ANN:
         self.cost = None
         self.accuracy = 0
         self.layers = self.create_layers(layers)
+        self.output_function = layers[-1].function
         self.cost_fn = cost_fn
         self.cost_functions = {
                 'mse': lambda y_true, y_pred: mean_squared_error(y_true, y_pred),
@@ -144,18 +145,19 @@ class ANN:
         return layers
 
 
-    def get_accuracy(self,  sigmoid_threshold = 0.5, output_activation:str = "sigmoid"):
-        
+    def get_accuracy(self, printable=False):
+        # print (self.output_function)
+        # TODO change to be able to support all activatoin functions
         def count_sigmoid():
             correct_predictions = 0
             for i in range(len(self.Y)):
-                if self.output[i] > sigmoid_threshold:
+                if self.output[i] > 0.5:
                     output_pred = 1
                 else:
                     output_pred = 0
                 if output_pred == self.Y[i]:
                     correct_predictions += 1
-            print (f"correct_predictions {correct_predictions}/{len(self.Y)}")
+            # print (f"correct_predictions {correct_predictions}/{len(self.Y)}")
             return correct_predictions
         
         def count_softmax():
@@ -165,16 +167,19 @@ class ANN:
                 # print (f"p1: {self.output[i][0]}, p2 {self.output[i][1]} | actually {self.Y[i]}")
                 if np.argmax(self.output[i]) == self.Y[i]:
                     correct_predictions += 1
-            print (f"correct_predictions {correct_predictions}/{len(self.Y)}")
+            # print (f"correct_predictions {correct_predictions}/{len(self.Y)}")
             return correct_predictions
 
         correct_predictions = 0
-        if output_activation == "sigmoid":
+        if self.output_function == "sigmoid":
             correct_predictions =  count_sigmoid()
-        if output_activation == "softmax":
+        if self.output_function == "softmax":
             correct_predictions = count_softmax()
         result = correct_predictions / len(self.Y)
-        return f"{correct_predictions}/{len(self.Y)}", result
+        if printable:
+            return f"{correct_predictions}/{len(self.Y)}", result
+        else:
+            return result
         
     def forward_pass(self):
         import numpy as np
@@ -191,6 +196,7 @@ class ANN:
         self.output = output
         # print(output)
         self.cost = self.get_cost()
+        self.accuracy = self.get_accuracy()
     
     
     def get_cost(self):

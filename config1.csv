@@ -1,6 +1,2 @@
 particles,iterations,architecture,cost_fn,inertia,c1,c2,seed
-50,10,tanh:2;relu:2;softmax:2,cross-entropy,0.5,,2,4
-50,10,tanh:2;relu:2;softmax:2,cross-entropy,0.5,1,2,5
-50,10,tanh:2;relu:2;softmax:2,cross-entropy,0.5,1,,
-50,10,tanh:2;relu:2;softmax:2,cross-entropy,0.5,1,2,6
-50,10,tanh:2;relu:2;softmax:2,cross-entropy,,,,4
+10,100,tanh:8;relu:4;sigmoid:2;softmax:2,cross-entropy,,,,4

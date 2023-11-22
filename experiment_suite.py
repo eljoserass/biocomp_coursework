@@ -2,7 +2,7 @@ from datetime import datetime
 import pandas as pd
 import numpy as np
 from ANN import ANN, create_layer
-from PSO import pso
+from PSO import pso, pso_accuracy
 
 def get_time_str() -> str:
     now = datetime.now()
@@ -41,7 +41,6 @@ def get_output_activation(architecture_str: str):
 def run_experiments(X_train, X_test, y_train, y_test, config_path: str, session_name: str = ""):
     config = pd.read_csv(config_path)
     results = {
-        
         "particle_cost": [],
         "particle_inertia": [],
         "c1": [],
@@ -71,7 +70,8 @@ def run_experiments(X_train, X_test, y_train, y_test, config_path: str, session_
             "particles_inertia": None if np.isnan(row["inertia"]) else float(row["inertia"]),
         }
         
-        pso_result = pso(num_particles=row["particles"], max_iter=row["iterations"], ann=ann, **pso_args)
+        # pso_result = pso(num_particles=row["particles"], max_iter=row["iterations"], ann=ann, **pso_args)
+        pso_result = pso_accuracy(num_particles=row["particles"], max_iter=row["iterations"], ann=ann, **pso_args)
         ann = ANN(layers=str_to_layers(row["architecture"]), Xdata=X_test.to_numpy(), Ydata=y_test.to_numpy())
         ann.fill_weights(pso_result["gbest_position"])
         ann.forward_pass()
@@ -81,7 +81,7 @@ def run_experiments(X_train, X_test, y_train, y_test, config_path: str, session_
         results["c1"].append(pso_result["c1"])
         results["c2"].append(pso_result["c2"])
         results["cost_fn"].append(row["cost_fn"])
-        correct_predictions_print, accuracy = ann.get_accuracy(output_activation=get_output_activation(row["architecture"]))
+        correct_predictions_print, accuracy = ann.get_accuracy(printable=True)
         results["accuracy"].append(accuracy)
         results["correct_predictions"].append(correct_predictions_print)
         results["particles"].append(row["particles"])
@@ -91,6 +91,10 @@ def run_experiments(X_train, X_test, y_train, y_test, config_path: str, session_
         results["session_name"].append(session_name)
         results["particle_pos"].append(pso_result["gbest_position"].tolist())
         results["time"].append(get_time_str())
+        print(f"* Best Accuracy {accuracy} | {correct_predictions_print}")
         print ("----------------")
     print ("\nExperiments Done!")
     write_experiments(db_path="experiments_db.csv", results=results)
+
+
+# def write_particle_cost_over_t
