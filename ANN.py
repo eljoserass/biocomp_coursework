@@ -148,7 +148,7 @@ class ANN:
         return layers
 
 
-    def get_accuracy(self, validate_Y = None, sigmoid_threshold = 0.5, output_activation:str = "sigmoid"):
+    def get_accuracy(self,  sigmoid_threshold = 0.5, output_activation:str = "sigmoid"):
         
         def count_sigmoid():
             correct_predictions = 0
@@ -171,7 +171,6 @@ class ANN:
                 self.take_samples()
                 self.forward_pass()
                 # print (f"p1: {self.output[i][0]}, p2 {self.output[i][1]} | actually {self.Y[i]}")
-                print("---- output", self.output)
                 if np.argmax(self.output) == self.Y[i]:
                     correct_predictions += 1    
             print (f"correct_predictions {correct_predictions}/{len(self.Y)}")
@@ -184,8 +183,8 @@ class ANN:
             correct_predictions =  count_sigmoid()
         if output_activation == "softmax":
             correct_predictions = count_softmax()
-    
-        return correct_predictions / len(self.Y)
+        accuracy = correct_predictions / len(self.Y)
+        return f"{correct_predictions}/{len(self.Y)}", accuracy
     
     
     def take_samples(self):
@@ -221,7 +220,7 @@ class ANN:
         """
         
         import numpy as np
-        print(self.index_samples, self.output[0])
+        # print(self.index_samples, self.output[0])
         return self.cost_functions[self.cost_fn](y_true=self.samples_y, y_pred=self.output)
         # return np.mean(self.Y * np.log(self.output)  + (1 - self.output) * np.log(1 - self.output)) / self.batch
 

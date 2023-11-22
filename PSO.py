@@ -4,29 +4,6 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-df_banknote = pd.read_csv("data_banknote_authentication.csv",  header=None)
-
-X = df_banknote.iloc[:, [0,1,2,3]]
-Y = df_banknote.iloc[:, [4]]
-
-X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
-# ann = ANN(inputs=X.shape[1], layers=[Layer(function="sigmoid", n_perceptrons=1, n_inputs=X.shape[1], id=0, batch_size=X.shape[0])], Xdata=X, Ydata=Y)
-
-# ann = ANN(inputs=X.shape[1], layers=[Layer(function="sigmoid", n_perceptrons=3, n_inputs=X.shape[1], id=0, batch_size=X.shape[0]),
-#                             Layer(function="sigmoid", n_perceptrons=1, n_inputs=3, id=1, batch_size=X.shape[0])], Xdata=X, Ydata=Y)
-
-architecture =[ create_layer("sigmoid", 16), create_layer("relu", 8), create_layer("sigmoid", 4), create_layer("softmax", 2)]
-
-ann = ANN( layers=architecture, 
-          Xdata=X_train.to_numpy(), Ydata=y_train.to_numpy(), cost_fn="cross-entropy", batch=30)
-
-"""
-
-particles = [[[w1,w2,w2], b1], [w3,w4,w5], b2, ....]
-
-
-"""
-
 def get_particles_cost(particles_position, ann: ANN):
     particles_cost = np.array([])
     ann.take_samples()  
@@ -59,9 +36,22 @@ def update_particle_velocity_position(particles_position, particles_velocity ,pa
                                                    )
     return particles_position + particles_velocity, particles_velocity
 
-def pso(num_particles: int, ann: ANN, max_iter: int):
+def get_particle_cost(particle_position, ann):
+    ann.fill_weights(particle=particle_position)
+    ann.forward_pass()
+    return ann.get_cost()
 
-    np.random.seed(4)
+def get_variable_parameters(kwargs_pso):
+    
+    return
+
+def pso(num_particles: int, ann: ANN, max_iter: int, **kwargs):
+    np.random.seed(kwargs.get("seed"))
+    particles_inertia = np.random.rand(num_particles, ) if kwargs.get("particles_inertia") is None\
+                        else np.full(num_particles, kwargs.get("particles_inertia"))
+    c1 = np.random.rand(1,)[0] if  kwargs.get("c1") is None else kwargs.get("c1")
+    c2 = np.random.rand(1,)[0] if  kwargs.get("c2") is None else kwargs.get("c2")
+
     particles_position = np.random.rand(num_particles, ann.get_total_parameters())
     particles_cost = np.full(num_particles, 1)
     particles_velocity = np.random.rand(num_particles, ann.get_total_parameters())
@@ -76,7 +66,9 @@ def pso(num_particles: int, ann: ANN, max_iter: int):
     c2 = np.random.rand(1,)[0] # maybe not random
     # c2 = 0.5
 
-    for _ in range(max_iter):
+    for iteration in range(max_iter):
+        if iteration % 10 == 0:
+            print (f"\t- Iteration: {iteration}")
         while not ann.finished_batch:
             particles_cost = get_particles_cost(particles_position=particles_position, ann=ann)
             for i in range(num_particles):
@@ -87,6 +79,7 @@ def pso(num_particles: int, ann: ANN, max_iter: int):
                 if  particles_cost[i] < particle_position_gbest_cost:
                     particle_position_gbest = np.copy(particles_position[i])
                     particle_position_gbest_cost = particles_cost[i]
+                    particle_gbest_inertia = particles_inertia[i]
  
                 particles_velocity[i] = update_particles_velocity(particles_position=particles_position[i],
                                                         particles_velocity=particles_velocity[i],
@@ -98,15 +91,16 @@ def pso(num_particles: int, ann: ANN, max_iter: int):
                 particles_position[i] = particles_position[i] + particles_velocity[i]
         ann.finished_batch = False
 
-    return particle_position_gbest, particle_position_gbest_cost
+    return {
+            "gbest_position": particle_position_gbest, 
+            "gbest_cost": particle_position_gbest_cost,
+            "gbest_inertia": particle_gbest_inertia,
+            "c1": c1,
+            "c2": c2
+            } 
 
         
     
 # print ("pre call")
-position, cost= pso(num_particles=10, ann=ann, max_iter=100)
-testing_ANN =  ANN(architecture, Xdata=X_test.to_numpy(), Ydata=y_test.to_numpy(), batch=1)
-testing_ANN.fill_weights(position)
-print("accuracy", testing_ANN.get_accuracy(output_activation="softmax"))
-print (f"position {position}  cost {cost}")
 # print ("postcall")
 
