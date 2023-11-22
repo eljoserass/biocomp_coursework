@@ -118,13 +118,17 @@ def binary_cross_entropy(y_true, y_pred):
 
 class ANN:
     
-    def __init__(self,  layers: list, Xdata, Ydata, cost_fn:str = "mse"):
-        
+    def __init__(self,  layers: list, Xdata, Ydata, cost_fn:str = "mse", batch = None):
         self.inputs = Xdata[1]
         self.n_layers = len(layers)
         self.X = Xdata
         self.Y = Ydata
-        self.batch = self.X.shape[0]
+        self.index_samples = 0
+        self.finished_batch = False
+        if not batch:
+            self.batch = self.X.shape[0]
+        else: 
+            self.batch = batch    
         self.output :float = None
         self.cost = None
         self.accuracy = 0
@@ -149,6 +153,8 @@ class ANN:
         def count_sigmoid():
             correct_predictions = 0
             for i in range(len(self.Y)):
+                self.take_samples()
+                self.forward_pass()
                 if self.output[i] > sigmoid_threshold:
                     output_pred = 1
                 else:
@@ -162,35 +168,49 @@ class ANN:
             import numpy as np
             correct_predictions = 0
             for i in range(len(self.Y)):
+                self.take_samples()
+                self.forward_pass()
                 # print (f"p1: {self.output[i][0]}, p2 {self.output[i][1]} | actually {self.Y[i]}")
-                if np.argmax(self.output[i]) == self.Y[i]:
-                    correct_predictions += 1
+                print("---- output", self.output)
+                if np.argmax(self.output) == self.Y[i]:
+                    correct_predictions += 1    
             print (f"correct_predictions {correct_predictions}/{len(self.Y)}")
             return correct_predictions
 
         correct_predictions = 0
+        self.batch = 1
+        self.index_samples = 0
         if output_activation == "sigmoid":
             correct_predictions =  count_sigmoid()
         if output_activation == "softmax":
             correct_predictions = count_softmax()
     
         return correct_predictions / len(self.Y)
-        
+    
+    
+    def take_samples(self):
+        if (self.index_samples + self.batch) > self.X.shape[0]:
+            self.finished_batch = True
+            self.index_samples = 0
+            return False
+        self.samples = self.X[self.index_samples: self.index_samples + self.batch]
+        self.samples_y = self.Y[self.index_samples: self.index_samples + self.batch]
+        self.index_samples += self.batch
+        return True
+    
     def forward_pass(self):
         import numpy as np
-        
-        output = np.empty_like(self.X.shape)
+        output = np.empty_like(self.samples)
         for layer in self.layers:
-            # print (f"ID({layer.id})")
+                # print (f"ID({layer.id})")
             if layer.id == 0:
-                output = layer.forward_pass(X=self.X)
+                    output = layer.forward_pass(X=self.samples)
             else:
                 output = layer.forward_pass(X=output)
-            # print (f"output.shape {output.shape}")
-            # print("-----------")
-        self.output = output
-        # print(output)
-        self.cost = self.get_cost()
+                # print (f"output.shape {output.shape}")
+                # print("-----------")
+            self.output = output
+            # print(output)
     
     
     def get_cost(self):
@@ -201,7 +221,8 @@ class ANN:
         """
         
         import numpy as np
-        return self.cost_functions[self.cost_fn](y_true=self.Y, y_pred=self.output)
+        print(self.index_samples, self.output[0])
+        return self.cost_functions[self.cost_fn](y_true=self.samples_y, y_pred=self.output)
         # return np.mean(self.Y * np.log(self.output)  + (1 - self.output) * np.log(1 - self.output)) / self.batch
 
     def get_total_parameters(self):

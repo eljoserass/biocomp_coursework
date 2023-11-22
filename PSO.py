@@ -15,9 +15,10 @@ X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_
 # ann = ANN(inputs=X.shape[1], layers=[Layer(function="sigmoid", n_perceptrons=3, n_inputs=X.shape[1], id=0, batch_size=X.shape[0]),
 #                             Layer(function="sigmoid", n_perceptrons=1, n_inputs=3, id=1, batch_size=X.shape[0])], Xdata=X, Ydata=Y)
 
-architecture =[ create_layer("tanh", 2), create_layer("relu", 2), create_layer("softmax", 2)]
+architecture =[ create_layer("sigmoid", 16), create_layer("relu", 8), create_layer("sigmoid", 4), create_layer("softmax", 2)]
+
 ann = ANN( layers=architecture, 
-          Xdata=X_train.to_numpy(), Ydata=y_train.to_numpy(), cost_fn="cross-entropy")
+          Xdata=X_train.to_numpy(), Ydata=y_train.to_numpy(), cost_fn="cross-entropy", batch=30)
 
 """
 
@@ -28,7 +29,7 @@ particles = [[[w1,w2,w2], b1], [w3,w4,w5], b2, ....]
 
 def get_particles_cost(particles_position, ann: ANN):
     particles_cost = np.array([])
-    
+    ann.take_samples()  
     for i in range(len(particles_position)):
         ann.fill_weights(particle=particles_position[i])
         ann.forward_pass()
@@ -58,58 +59,53 @@ def update_particle_velocity_position(particles_position, particles_velocity ,pa
                                                    )
     return particles_position + particles_velocity, particles_velocity
 
-def get_particle_cost(particle_position):
-    ann.fill_weights(particle=particle_position)
-    ann.forward_pass()
-    return ann.get_cost()
-
-
 def pso(num_particles: int, ann: ANN, max_iter: int):
+
     np.random.seed(4)
     particles_position = np.random.rand(num_particles, ann.get_total_parameters())
-    particles_cost = get_particles_cost(particles_position=particles_position, ann=ann)
+    particles_cost = np.full(num_particles, 1)
     particles_velocity = np.random.rand(num_particles, ann.get_total_parameters())
     particles_inertia = np.random.rand(num_particles, ) # maybe not random and not different for each
     # particles_inertia = np.full(num_particles, 0.7)
-    particles_position_pbest = np.array(particles_position, copy=True)
-    particles_position_pbest_cost =  get_particles_cost(particles_position=particles_position_pbest, ann=ann)
+    particles_position_pbest = np.copy(particles_position)
+    particles_position_pbest_cost =  np.copy(particles_cost)
     particle_position_gbest = particles_position[np.argmin(particles_cost)]
-    particle_position_gbest_cost = get_particle_cost(particle_position_gbest)
+    particle_position_gbest_cost = np.min(particles_cost)
     c1 = np.random.rand(1,)[0] # maybe not random
     # c1 = 0.4
     c2 = np.random.rand(1,)[0] # maybe not random
     # c2 = 0.5
 
     for _ in range(max_iter):
-        
-        particles_cost = get_particles_cost(particles_position=particles_position, ann=ann) 
-        particles_position_pbest_cost =  get_particles_cost(particles_position=particles_position_pbest, ann=ann)
-        for i in range(num_particles):
-            if particles_cost[i] < particles_position_pbest_cost[i]:
-                particles_position_pbest[i] = particles_position[i]
-            
-            if  particles_cost[i] < particle_position_gbest_cost:
-                particle_position_gbest = np.copy(particles_position[i])
-                particle_position_gbest_cost = particles_cost[i]
-            
-            
-            particles_velocity[i] = update_particles_velocity(particles_position=particles_position[i],
-                                                    particles_velocity=particles_velocity[i],
-                                                    particles_inertia=particles_inertia[i],
-                                                    particles_position_pbest=particles_position_pbest[i],
-                                                    particle_position_gbest=particle_position_gbest,
-                                                    c1=c1,
-                                                    c2=c2)
-            particles_position[i] = particles_position[i] + particles_velocity[i]
+        while not ann.finished_batch:
+            particles_cost = get_particles_cost(particles_position=particles_position, ann=ann)
+            for i in range(num_particles):
+                if particles_cost[i] < particles_position_pbest_cost[i]:
+                    particles_position_pbest[i] = np.copy(particles_position[i])
+                    particles_position_pbest_cost[i] = particles_cost[i]
+
+                if  particles_cost[i] < particle_position_gbest_cost:
+                    particle_position_gbest = np.copy(particles_position[i])
+                    particle_position_gbest_cost = particles_cost[i]
+ 
+                particles_velocity[i] = update_particles_velocity(particles_position=particles_position[i],
+                                                        particles_velocity=particles_velocity[i],
+                                                        particles_inertia=particles_inertia[i],
+                                                        particles_position_pbest=particles_position_pbest[i],
+                                                        particle_position_gbest=particle_position_gbest,
+                                                        c1=c1,  
+                                                        c2=c2)
+                particles_position[i] = particles_position[i] + particles_velocity[i]
+        ann.finished_batch = False
+
     return particle_position_gbest, particle_position_gbest_cost
 
         
     
 # print ("pre call")
-position, cost= pso(num_particles=50, ann=ann, max_iter=200)
-testing_ANN =  ANN(architecture, Xdata=X_test.to_numpy(), Ydata=y_test.to_numpy())
+position, cost= pso(num_particles=10, ann=ann, max_iter=100)
+testing_ANN =  ANN(architecture, Xdata=X_test.to_numpy(), Ydata=y_test.to_numpy(), batch=1)
 testing_ANN.fill_weights(position)
-testing_ANN.forward_pass()
 print("accuracy", testing_ANN.get_accuracy(output_activation="softmax"))
 print (f"position {position}  cost {cost}")
 # print ("postcall")
