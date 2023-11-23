@@ -2,6 +2,8 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from experiment_suite import run_experiments
+import numpy as np
+
 
 df_banknote = pd.read_csv("data_banknote_authentication.csv",  header=None)
 
@@ -15,4 +17,7 @@ Can do this in a loop, changing session name for giving it a title of what the e
 and iterating through different .csv configs
 """
 
+
+
 run_experiments(X_train, X_test, y_train, y_test, config_path="config1.csv", session_name="test")
+
