@@ -18,17 +18,17 @@ for filename in sorted(os.listdir(folder_path)):
         dfs.append(df)
 
 # Create figure
-
-
 fig = go.Figure()
 
 # Add traces, one for each slider step
+# print (len(dfs))
+
 for i, df in enumerate(dfs):
     # Extract the 'position' and 'accuracy' columns for dimensionality reduction
     positions = df['position']
     accuracy_values = df['accuracy']
-
     # Convert the string representation of lists to actual lists
+    # print (df["iterations"][0])
     positions = positions.apply(lambda x: np.fromstring(x[1:-1], sep=', '))
 
     # Apply PCA for dimensionality reduction to 3D
@@ -46,7 +46,8 @@ for i, df in enumerate(dfs):
                 size=10,
                 color=normalized_accuracy,
                 colorscale='Viridis',
-                opacity=0.8
+                opacity=0.8,
+                colorbar=dict(title='Accuracy')
             ),
             name=f'Time Step {i}',
             x=reduced_positions[:, 0],
@@ -73,7 +74,7 @@ sliders = [dict(
     active=0,
     currentvalue={"prefix": "Time Step: "},
     pad={"t": 50},
-    steps=steps
+    steps=steps,
 )]
 
 fig.update_layout(
