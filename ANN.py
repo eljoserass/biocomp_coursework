@@ -183,9 +183,6 @@ class ANN:
         return layers
 
     def get_accuracy(self, printable=False):
-        import numpy as np
-    
-        
         self.take_samples()
         self.forward_pass()
         correct_predictions = self.accuracy_functions[self.output_function](y_true=self.samples_y, y_pred=self.output)
