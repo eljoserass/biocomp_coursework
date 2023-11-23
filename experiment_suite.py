@@ -38,7 +38,7 @@ def get_output_activation(architecture_str: str):
     return layers[-1].split(":")[0]
     
 
-def run_experiments(X_train, X_test, y_train, y_test, config_path: str, session_name: str = ""):
+def run_experiments(X_train, X_test, y_train, y_test, config_path: str, session_name: str = "", db_path="experiments_db.csv"):
     config = pd.read_csv(config_path)
     results = {
         "particle_cost": [],
@@ -100,7 +100,7 @@ def run_experiments(X_train, X_test, y_train, y_test, config_path: str, session_
         print(f"* Best Accuracy {accuracy} | {correct_predictions_print}")
         print ("----------------")
     print ("\nExperiments Done!")
-    write_experiments(db_path="experiments_db.csv", results=results)
+    write_experiments(db_path=db_path, results=results)
 
 
 # def write_particle_cost_over_t

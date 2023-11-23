@@ -73,9 +73,6 @@ def pso_min_cost(num_particles: int, ann: ANN, max_iter: int, **kwargs):
     particles_position_pbest_cost =  np.copy(particles_cost)
     particle_position_gbest = particles_position[np.argmin(particles_cost)]
     particle_position_gbest_cost = np.min(particles_cost)
-    # c1 = np.random.rand(1,)[0] # maybe not random
-    # c2 = np.random.rand(1,)[0] # maybe not random
-    # for some reason if the 2 lines above are uncommented it gives better results
     
     for iteration in range(max_iter):
         if iteration % 10 == 0:
@@ -109,6 +106,7 @@ def pso_min_cost(num_particles: int, ann: ANN, max_iter: int, **kwargs):
             "c1": c1,
             "c2": c2
             }
+
 
 
 
