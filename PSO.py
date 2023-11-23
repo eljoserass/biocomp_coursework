@@ -140,7 +140,7 @@ def pso_max_accuracy(num_particles: int, ann: ANN, max_iter: int, **kwargs):
             print (f"\t- Iteration: {iteration}")
         while not ann.finished_batch:
             particles_accuracy = get_particles_accuracy(particles_position=particles_position, ann=ann)
-            # particles_cost = get_particles_cost(particles_position=particles_position, ann=ann, take_sample=False)
+            particles_cost = get_particles_cost(particles_position=particles_position, ann=ann, take_sample=False)
             # quiero guardar el costo pero si la descomento tarda mucho
             for i in range(num_particles):
                 if particles_accuracy[i] > particles_position_pbest_accuracy[i]:
