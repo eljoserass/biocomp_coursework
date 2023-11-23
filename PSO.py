@@ -116,6 +116,7 @@ def pso_min_cost(num_particles: int, ann: ANN, max_iter: int, **kwargs):
                                                         c1=c1,  
                                                         c2=c2)
                 particles_position[i] = particles_position[i] + particles_velocity[i]
+
         ann.finished_batch = False
 
     return {
@@ -158,7 +159,6 @@ def pso_max_accuracy(num_particles: int, ann: ANN, max_iter: int, **kwargs):
         while not ann.finished_batch:
             particles_accuracy = get_particles_accuracy(particles_position=particles_position, ann=ann)
             particles_cost = get_particles_cost(particles_position=particles_position, ann=ann, take_sample=False)
-            # quiero guardar el costo pero si la descomento tarda mucho
             for i in range(num_particles):
                 if particles_accuracy[i] > particles_position_pbest_accuracy[i]:
                     particles_position_pbest[i] = particles_position[i]
@@ -184,7 +184,7 @@ def pso_max_accuracy(num_particles: int, ann: ANN, max_iter: int, **kwargs):
                     particles_cost=particles_cost,
                     particles_velocity=particles_velocity,
                     iteration=iteration,
-                    step=10,
+                    step=3,
                     experiment_id=kwargs.get("experiment_id")
                 )
         ann.finished_batch = False
