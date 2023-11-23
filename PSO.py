@@ -3,6 +3,7 @@ from ANN import ANN, create_layer
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from standard_deviation import standard_deviation_func
 
 
 def get_particles_accuracy(particles_position, ann: ANN, take_sample = True):
@@ -137,6 +138,7 @@ def pso_max_accuracy(num_particles: int, ann: ANN, max_iter: int, **kwargs):
 
     for iteration in range(max_iter):
         if iteration % 10 == 0:
+            print(standard_deviation_func(particles_accuracy))
             print (f"\t- Iteration: {iteration}")
         while not ann.finished_batch:
             particles_accuracy = get_particles_accuracy(particles_position=particles_position, ann=ann)
