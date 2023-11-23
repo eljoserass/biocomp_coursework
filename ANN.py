@@ -118,6 +118,31 @@ def binary_cross_entropy(y_true, y_pred):
     y_pred = np.clip(y_pred, epsilon, 1 - epsilon)
     return -np.mean(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
 
+def count_softmax(y_true, y_pred):
+    import numpy as np
+    countable = np.argmax(y_pred, axis=1)
+    correct_predictions = 0
+    for i in range(len(y_true)):
+        if countable[i] == y_true[i]:
+            correct_predictions += 1
+    return correct_predictions
+
+def count_sigmoid(y_true, y_pred):
+    countable = y_pred > 0.5
+    correct_predictions = 0
+    for i in range(len(y_true)):
+        if countable[i] == y_true[i]:
+            correct_predictions += 1
+    return correct_predictions
+
+def count_binary(y_true, y_pred):
+    correct_predictions = 0
+    for i in range(len(y_true)):
+        if y_pred[i] == y_true[i]:
+            correct_predictions += 1
+    return correct_predictions
+    
+
 class ANN:
     
     def __init__(self,  layers: list, Xdata, Ydata, cost_fn:str = "mse", batch = None):
@@ -141,6 +166,13 @@ class ANN:
                 'mse': lambda y_true, y_pred: mean_squared_error(y_true, y_pred),
                 'cross-entropy': lambda y_true, y_pred: binary_cross_entropy(y_true, y_pred)
             }
+        self.accuracy_functions = {
+                'sigmoid': lambda y_true, y_pred: count_sigmoid(y_true, y_pred),
+                'softmax': lambda y_true, y_pred: count_softmax(y_true, y_pred),
+                'tanh': lambda y_true, y_pred: count_binary(y_true, y_pred),
+                'relu': lambda y_true, y_pred: count_binary(y_true, y_pred)
+        }
+
     
     def create_layers(self, layers_info: list):
         layers = [Layer(function=layers_info[0].function, n_perceptrons=layers_info[0].n_perceptrons, n_inputs=self.X.shape[1], id=0, batch_size=self.batch)]
@@ -150,21 +182,19 @@ class ANN:
         
         return layers
 
-    def get_accuracy_train(self):
-        import numpy as np
-        correct = 0
-        if self.output_function == "sigmoid":
-            countable = self.output > 0.5
-            correct = np.sum(countable == self.samples_y)
-
-        if self.output_function == "softmax": 
-            cleaner = np.vectorize(lambda i: np.argmax(i))
-            countable = cleaner(self.output)
-            correct = np.sum(countable == self.samples_y)
-
-        return correct / len(self.samples_y)
-    
     def get_accuracy(self, printable=False):
+        import numpy as np
+    
+        
+        self.take_samples()
+        self.forward_pass()
+        correct_predictions = self.accuracy_functions[self.output_function](y_true=self.samples_y, y_pred=self.output)
+
+        accuracy = correct_predictions / len(self.samples_y)
+        return_value = (f"{correct_predictions}/{len(self.samples_y)}", accuracy) if printable else accuracy
+        return return_value
+    
+    def get_accuracy_old(self, printable=False):
         # TODO change to be able to support all activatoin functions
         def count_sigmoid():
             correct_predictions = 0
@@ -188,7 +218,7 @@ class ANN:
                 if np.argmax(self.output[i]) == self.samples_y[i]:
                     correct_predictions += 1  
             if printable:  
-                print (f"correct_predictions {correct_predictions}/{len(self.samples)}")
+                print (f"correct_predictions {correct_predictions}/{len(self.samples_y)}")
             return correct_predictions
 
         correct_predictions = 0
@@ -200,8 +230,8 @@ class ANN:
             correct_predictions =  count_sigmoid()
         if self.output_function == "softmax":
             correct_predictions = count_softmax()
-        accuracy = correct_predictions / len(self.samples)
-        return_value = (f"{correct_predictions}/{len(self.samples)}", accuracy) if printable else accuracy
+        accuracy = correct_predictions / len(self.samples_y)
+        return_value = (f"{correct_predictions}/{len(self.samples_y)}", accuracy) if printable else accuracy
         return return_value
     
     
