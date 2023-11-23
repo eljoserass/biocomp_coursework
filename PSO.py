@@ -56,9 +56,28 @@ def get_particle_accuracy(particle_position, ann):
     ann.forward_pass()
     return ann.accuracy
 
-def get_variable_parameters(kwargs_pso):
-    
-    return
+
+def write_evolution(particles_position, particles_accuracy, particles_cost, particles_velocity, iteration, experiment_id, step = 10):
+    import os
+    import pathlib
+
+    if iteration % step != 0 or experiment_id == None:
+        return
+    results = {
+        "position": particles_position.tolist(),
+        "accuracy": particles_accuracy.tolist(),
+        "cost": particles_cost.tolist(),
+        "velocity": particles_velocity.tolist(),
+        "iteration": iteration,
+        "experiment_id": experiment_id
+    }
+
+    if not os.path.exists(f"./evolution_viz/{experiment_id}"):
+        os.mkdir(f"./evolution_viz/{experiment_id}")
+    df = pd.DataFrame(results)
+    csvfile = pathlib.Path(f"./evolution_viz/{experiment_id}/{iteration}.csv")
+    df.to_csv(f"./evolution_viz/{experiment_id}/{iteration}.csv", mode='a', index=False, header=not csvfile.exists())
+
 
 def pso_min_cost(num_particles: int, ann: ANN, max_iter: int, **kwargs):
     np.random.seed(kwargs.get("seed"))
@@ -159,6 +178,15 @@ def pso_max_accuracy(num_particles: int, ann: ANN, max_iter: int, **kwargs):
                                                         c1=c1,
                                                         c2=c2)
                 particles_position[i] = particles_position[i] + particles_velocity[i]
+                write_evolution(
+                    particles_position=particles_position,
+                    particles_accuracy=particles_accuracy,
+                    particles_cost=particles_cost,
+                    particles_velocity=particles_velocity,
+                    iteration=iteration,
+                    step=10,
+                    experiment_id=kwargs.get("experiment_id")
+                )
         ann.finished_batch = False
 
     return {

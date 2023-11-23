@@ -16,13 +16,14 @@ def architecture_to_str(architecture: list) -> str:
         result_str += ":"
         result_str += layer.n_perceptrons
 
-from ast import literal_eval
 def write_experiments(results: dict,
                       db_path: str
                   ) -> pd.DataFrame:
+    import pathlib
     df = pd.DataFrame(results)
     # TODO check if file is created and if header is created
-    df.to_csv(db_path, mode='a', index=False, header=False)
+    csvfile = pathlib.Path(db_path)
+    df.to_csv(db_path, mode='a', index=False, header=not csvfile.exists())
     return df
 
 def str_to_layers(architecture_str: str):
@@ -38,7 +39,7 @@ def get_output_activation(architecture_str: str):
     return layers[-1].split(":")[0]
     
 
-def run_experiments(X_train, X_test, y_train, y_test, config_path: str, session_name: str = "", db_path="experiments_db.csv"):
+def run_experiments(X_train, X_test, y_train, y_test, config_path: str, session_name: str = "", db_path="experiments_db.csv", evolution_viz = False):
     config = pd.read_csv(config_path)
     results = {
         "particle_cost": [],
@@ -70,10 +71,9 @@ def run_experiments(X_train, X_test, y_train, y_test, config_path: str, session_
             "c1": None if np.isnan(row["c1"]) else float(row["c1"]),
             "c2": None if np.isnan(row["c2"]) else float(row["c2"]),
             "particles_inertia": None if np.isnan(row["inertia"]) else float(row["inertia"]),
+            "experiment_id": index if evolution_viz == True else None
         }
         
-        # pso_result = pso_min_cost(num_particles=row["particles"], max_iter=row["iterations"], ann=ann, **pso_args)
-        pass
         if row["objective"] == "max_accuracy":
             pso_result = pso_max_accuracy(num_particles=row["particles"], max_iter=row["iterations"], ann=ann, **pso_args)
         if row["objective"] == "min_cost":
