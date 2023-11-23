@@ -184,24 +184,24 @@ class ANN:
         def count_softmax():
             import numpy as np
             correct_predictions = 0
-            for i in range(len(self.Y)):
-                self.take_samples()
-                self.forward_pass()
-                if np.argmax(self.output) == self.Y[i]:
+            for i in range(len(self.samples_y)):
+                if np.argmax(self.output[i]) == self.samples_y[i]:
                     correct_predictions += 1  
             if printable:  
-                print (f"correct_predictions {correct_predictions}/{len(self.Y)}")
+                print (f"correct_predictions {correct_predictions}/{len(self.samples)}")
             return correct_predictions
 
         correct_predictions = 0
-        self.batch = 1
-        self.index_samples = 0
+        #take samples y
+        self.take_samples()
+        #take output
+        self.forward_pass()
         if self.output_function == "sigmoid":
             correct_predictions =  count_sigmoid()
         if self.output_function == "softmax":
             correct_predictions = count_softmax()
-        accuracy = correct_predictions / len(self.Y)
-        return_value = (f"{correct_predictions}/{len(self.Y)}", accuracy) if printable else accuracy
+        accuracy = correct_predictions / len(self.samples)
+        return_value = (f"{correct_predictions}/{len(self.samples)}", accuracy) if printable else accuracy
         return return_value
     
     

@@ -6,12 +6,10 @@ from sklearn.model_selection import train_test_split
 
 
 def get_particles_accuracy(particles_position, ann: ANN, take_sample = True):
+    print("hello")
     particles_accuracy = np.array([])
-    if take_sample == True:
-        ann.take_samples()
     for i in range(len(particles_position)):
         ann.fill_weights(particle=particles_position[i])
-        ann.forward_pass()
         particles_accuracy = np.append(particles_accuracy, ann.get_accuracy()) # cambiar con get_accuracy_train()
     return particles_accuracy
 
