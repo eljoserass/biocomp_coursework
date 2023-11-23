@@ -82,8 +82,10 @@ class Perceptron:
     def __init__(self, n_weights: int, act_function: callable, id: int):
         
         import numpy as np
+        import decimal
         self.id = id
         self.W = np.random.rand(n_weights)
+        self.W
         self.b = 1
         self.act_function = act_function
         self.output = 0
@@ -112,19 +114,23 @@ def mean_squared_error(y_true, y_pred):
 
 def binary_cross_entropy(y_true, y_pred):
     import numpy as np
-    epsilon = 1e-15  # Small constant to avoid log(0)
-    y_pred = np.clip(y_pred, epsilon, 1 - epsilon)  # Clip values to avoid numerical instability
+    epsilon = 1e-15 
+    y_pred = np.clip(y_pred, epsilon, 1 - epsilon)
     return -np.mean(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
 
 class ANN:
     
-    def __init__(self,  layers: list, Xdata, Ydata, cost_fn:str = "mse"):
-        
+    def __init__(self,  layers: list, Xdata, Ydata, cost_fn:str = "mse", batch = None):
         self.inputs = Xdata[1]
         self.n_layers = len(layers)
         self.X = Xdata
         self.Y = Ydata
-        self.batch = self.X.shape[0]
+        self.index_samples = 0
+        self.finished_batch = False
+        if not batch:
+            self.batch = self.X.shape[0]
+        else: 
+            self.batch = batch    
         self.output :float = None
         self.cost = None
         self.accuracy = 0
@@ -144,71 +150,94 @@ class ANN:
         
         return layers
 
+    def get_accuracy_train(self):
+        import numpy as np
+        correct = 0
+        if self.output_function == "sigmoid":
+            countable = self.output > 0.5
+            correct = np.sum(countable == self.samples_y)
 
+        if self.output_function == "softmax": 
+            cleaner = np.vectorize(lambda i: np.argmax(i))
+            countable = cleaner(self.output)
+            correct = np.sum(countable == self.samples_y)
+
+        return correct / len(self.samples_y)
+    
     def get_accuracy(self, printable=False):
-        # print (self.output_function)
         # TODO change to be able to support all activatoin functions
         def count_sigmoid():
             correct_predictions = 0
             for i in range(len(self.Y)):
+                self.take_samples()
+                self.forward_pass()
                 if self.output[i] > 0.5:
                     output_pred = 1
                 else:
                     output_pred = 0
                 if output_pred == self.Y[i]:
                     correct_predictions += 1
-            # print (f"correct_predictions {correct_predictions}/{len(self.Y)}")
+            if printable:
+                print (f"correct_predictions {correct_predictions}/{len(self.Y)}")
             return correct_predictions
         
         def count_softmax():
             import numpy as np
             correct_predictions = 0
             for i in range(len(self.Y)):
-                # print (f"p1: {self.output[i][0]}, p2 {self.output[i][1]} | actually {self.Y[i]}")
-                if np.argmax(self.output[i]) == self.Y[i]:
-                    correct_predictions += 1
-            # print (f"correct_predictions {correct_predictions}/{len(self.Y)}")
+                self.take_samples()
+                self.forward_pass()
+                if np.argmax(self.output) == self.Y[i]:
+                    correct_predictions += 1  
+            if printable:  
+                print (f"correct_predictions {correct_predictions}/{len(self.Y)}")
             return correct_predictions
 
         correct_predictions = 0
+        self.batch = 1
+        self.index_samples = 0
         if self.output_function == "sigmoid":
             correct_predictions =  count_sigmoid()
         if self.output_function == "softmax":
             correct_predictions = count_softmax()
-        result = correct_predictions / len(self.Y)
-        if printable:
-            return f"{correct_predictions}/{len(self.Y)}", result
-        else:
-            return result
-        
+        accuracy = correct_predictions / len(self.Y)
+        return_value = (f"{correct_predictions}/{len(self.Y)}", accuracy) if printable else accuracy
+        return return_value
+    
+    
+    def take_samples(self):
+        if (self.index_samples + self.batch) > self.X.shape[0]:
+            self.finished_batch = True
+            self.index_samples = 0
+            return False
+        self.samples = self.X[self.index_samples: self.index_samples + self.batch]
+        self.samples_y = self.Y[self.index_samples: self.index_samples + self.batch]
+        self.index_samples += self.batch
+        return True
+    
     def forward_pass(self):
         import numpy as np
-        
-        output = np.empty_like(self.X.shape)
+        output = np.empty_like(self.samples)
         for layer in self.layers:
-            # print (f"ID({layer.id})")
             if layer.id == 0:
-                output = layer.forward_pass(X=self.X)
+                output = layer.forward_pass(X=self.samples)
             else:
                 output = layer.forward_pass(X=output)
-            # print (f"output.shape {output.shape}")
-            # print("-----------")
         self.output = output
-        # print(output)
-        self.cost = self.get_cost()
-        self.accuracy = self.get_accuracy()
+        # self.cost = self.get_cost()
+        # self.accuracy = self.get_accuracy_train()
     
     
-    def get_cost(self):
+    def get_cost(self, output = None):
         """Mean squared error derivative on the output of the last layer
 
         Returns:
             np.array: matrix with the cost of the output
         """
-        
         import numpy as np
-        return self.cost_functions[self.cost_fn](y_true=self.Y, y_pred=self.output)
-        # return np.mean(self.Y * np.log(self.output)  + (1 - self.output) * np.log(1 - self.output)) / self.batch
+        # pred = self.output if None else output
+        
+        return self.cost_functions[self.cost_fn](y_true=self.samples_y, y_pred=self.output)
 
     def get_total_parameters(self):
         n_parameters = 0

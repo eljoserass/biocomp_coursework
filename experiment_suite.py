@@ -2,7 +2,7 @@ from datetime import datetime
 import pandas as pd
 import numpy as np
 from ANN import ANN, create_layer
-from PSO import pso, pso_accuracy
+from PSO import pso_min_cost, pso_max_accuracy
 
 def get_time_str() -> str:
     now = datetime.now()
@@ -35,7 +35,7 @@ def str_to_layers(architecture_str: str):
         
 def get_output_activation(architecture_str: str):
     layers = architecture_str.split(";")
-    return layers[len(layers)- 1].split(":")[0]
+    return layers[-1].split(":")[0]
     
 
 def run_experiments(X_train, X_test, y_train, y_test, config_path: str, session_name: str = ""):
@@ -50,7 +50,9 @@ def run_experiments(X_train, X_test, y_train, y_test, config_path: str, session_
         "correct_predictions": [],
         "particles": [],
         "iterations": [],
+        "objective": [],
         "architecture": [],
+        "batch_size": [],
         "seed": [],
         "session_name": [],
         "particle_pos": [],
@@ -58,10 +60,10 @@ def run_experiments(X_train, X_test, y_train, y_test, config_path: str, session_
     }
     ann = None
     pso_args = None
-
     for index, row in config.iterrows():
         print (f"Running Experiment {index}")
-        ann = ANN(layers=str_to_layers(row["architecture"]), cost_fn=row["cost_fn"], Xdata=X_train.to_numpy(), Ydata=y_train.to_numpy())
+        batch = None if np.isnan(row["batch_size"]) else int(row["batch_size"])
+        ann = ANN(layers=str_to_layers(row["architecture"]), cost_fn=row["cost_fn"], Xdata=X_train.to_numpy(), Ydata=y_train.to_numpy(), batch=batch)
         
         pso_args = {
             "seed": None if np.isnan(row["seed"]) else int(row["seed"]),
@@ -70,12 +72,14 @@ def run_experiments(X_train, X_test, y_train, y_test, config_path: str, session_
             "particles_inertia": None if np.isnan(row["inertia"]) else float(row["inertia"]),
         }
         
-        # pso_result = pso(num_particles=row["particles"], max_iter=row["iterations"], ann=ann, **pso_args)
-        pso_result = pso_accuracy(num_particles=row["particles"], max_iter=row["iterations"], ann=ann, **pso_args)
+        # pso_result = pso_min_cost(num_particles=row["particles"], max_iter=row["iterations"], ann=ann, **pso_args)
+        pass
+        if row["objective"] == "max_accuracy":
+            pso_result = pso_max_accuracy(num_particles=row["particles"], max_iter=row["iterations"], ann=ann, **pso_args)
+        if row["objective"] == "min_cost":
+            pso_result = pso_min_cost(num_particles=row["particles"], max_iter=row["iterations"], ann=ann, **pso_args)
         ann = ANN(layers=str_to_layers(row["architecture"]), Xdata=X_test.to_numpy(), Ydata=y_test.to_numpy())
         ann.fill_weights(pso_result["gbest_position"])
-        ann.forward_pass()
-        
         results["particle_cost"].append(pso_result["gbest_cost"])
         results["particle_inertia"].append(pso_result["gbest_inertia"])
         results["c1"].append(pso_result["c1"])
@@ -86,7 +90,9 @@ def run_experiments(X_train, X_test, y_train, y_test, config_path: str, session_
         results["correct_predictions"].append(correct_predictions_print)
         results["particles"].append(row["particles"])
         results["iterations"].append(row["iterations"])
+        results["objective"].append(row["objective"])
         results["architecture"].append(row["architecture"])
+        results["batch_size"].append(batch)
         results["seed"].append(row["seed"])
         results["session_name"].append(session_name)
         results["particle_pos"].append(pso_result["gbest_position"].tolist())
