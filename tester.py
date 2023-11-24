@@ -2,7 +2,6 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from src.experiment_suite import run_experiments
-import numpy as np
 import os
 
 
