@@ -18,6 +18,5 @@ and iterating through different .csv configs
 """
 
 
-
 run_experiments(X_train, X_test, y_train, y_test, config_path="config1.csv", session_name="diff_min_max", db_path="test.csv", evolution_viz=True)
 

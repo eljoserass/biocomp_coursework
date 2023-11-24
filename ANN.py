@@ -236,7 +236,7 @@ class ANN:
         self.output = output
     
     
-    def get_cost(self, output = None):
+    def get_cost(self):
         """Mean squared error derivative on the output of the last layer
 
         Returns:
