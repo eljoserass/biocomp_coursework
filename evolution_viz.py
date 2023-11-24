@@ -5,7 +5,12 @@ from sklearn.decomposition import PCA
 import os
 import argparse
 
-# Path to the folder containing CSV files
+"""
+Program with plotly and PCA to visualize the evolution of the 
+particles per iterations in the space with the accuracy and standard deviation
+
+Takes as parameter the experiment id
+"""
 
 parser = argparse.ArgumentParser(
                     prog='Experiment Evolution Visualization',
@@ -19,13 +24,15 @@ args = parser.parse_args()
 
 experiment_id = 0 if args.experiment_id == None else args.experiment_id
 
-folder_path = f"evolution_viz/{0}"
+folder_path = f"./evolution_viz/{experiment_id}"
 
-if not os.path.exists(f"./evolution_viz/{experiment_id}"):
+if not os.path.exists(folder_path):
     print ("No experiments made")
     exit (84)
 
 dfs = []
+
+# Load dataframes iterations
 
 for filename in sorted(os.listdir(folder_path)):
     if filename.endswith(".csv"):
@@ -35,6 +42,8 @@ for filename in sorted(os.listdir(folder_path)):
 
 fig = go.Figure()
 
+# Perform PCA on each particle, in all of the dataframes
+# Create data object to put in the Scatter3D
 for i, df in enumerate(dfs):
 
     positions = df['position']
@@ -67,6 +76,7 @@ for i, df in enumerate(dfs):
 
 fig.data[0].visible = True
 
+# Create stepper to move along iterations
 steps = []
 for i in range(len(fig.data)):
     step = dict(
