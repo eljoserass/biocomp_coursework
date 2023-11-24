@@ -27,3 +27,4 @@ for i in range(len(all_files)):
     print (f"config : {all_files[i]}")
     run_experiments(X_train, X_test, y_train, y_test, config_path=f"./experiments_config/{all_files[i]}", session_name=csv_files_without_extension[i], db_path="experiments_db.csv", evolution_viz=False)
 
+run_experiments(X_train, X_test, y_train, y_test, config_path=f"./experiments_config/viz_evolution.csv", session_name="evolution", db_path="experiments_db.csv", evolution_viz=True)
