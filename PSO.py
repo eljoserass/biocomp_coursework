@@ -3,10 +3,10 @@ from ANN import ANN, create_layer
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from standard_deviation import standard_deviation_func
 
 
 def get_particles_accuracy(particles_position, ann: ANN, take_sample = True):
-    # print("hello") 
     particles_accuracy = np.array([])
     for i in range(len(particles_position)):
         ann.fill_weights(particle=particles_position[i])
@@ -24,7 +24,7 @@ def get_particles_cost(particles_position, ann: ANN, take_sample = True):
     return particles_cost
 
 def update_particles_velocity(particles_position, particles_velocity ,particles_inertia, particles_position_pbest, particle_position_gbest, c1, c2):
-    # TODO see informants stratergies
+
     new_particle_velocity = (
         particles_inertia * particles_velocity + 
         c1 * np.random.rand(1,)[0] * (particles_position_pbest - particles_position) + 
@@ -56,9 +56,39 @@ def get_particle_accuracy(particle_position, ann):
     ann.forward_pass()
     return ann.accuracy
 
-def get_variable_parameters(kwargs_pso):
+
+def write_evolution(standard_deviation, particles_position, particles_accuracy, particles_cost, particles_velocity, iteration, experiment_id, step = 10):
+    import os
+    import pathlib
+
+    if iteration % step != 0 or experiment_id == None:
+        return
+
+    results = {
+        "standard_deviation": [],
+        "position": [],
+        "accuracy": [],
+        "cost": [],
+        "velocity": [],
+        "iteration": [],
+        "experiment_id": []
+    }
+
+    for i in range(len(particles_position)):
+        results["position"].append(particles_position[i].tolist())
+        results["accuracy"].append(particles_accuracy[i].tolist())
+        results["cost"].append(particles_cost[i].tolist())
+        results["velocity"].append(particles_velocity[i].tolist())
+        results["standard_deviation"].append(standard_deviation)
+        results["iteration"].append(iteration)
+        results["experiment_id"].append(experiment_id)
     
-    return
+    if not os.path.exists(f"./evolution_viz/{experiment_id}"):
+        os.mkdir(f"./evolution_viz/{experiment_id}")
+    df = pd.DataFrame(results)
+    csvfile = pathlib.Path(f"./evolution_viz/{experiment_id}/{iteration}.csv")
+    df.to_csv(f"./evolution_viz/{experiment_id}/{iteration}.csv", mode='a', index=False, header=not csvfile.exists())
+
 
 def pso_min_cost(num_particles: int, ann: ANN, max_iter: int, **kwargs):
     np.random.seed(kwargs.get("seed"))
@@ -73,9 +103,6 @@ def pso_min_cost(num_particles: int, ann: ANN, max_iter: int, **kwargs):
     particles_position_pbest_cost =  np.copy(particles_cost)
     particle_position_gbest = particles_position[np.argmin(particles_cost)]
     particle_position_gbest_cost = np.min(particles_cost)
-    # c1 = np.random.rand(1,)[0] # maybe not random
-    # c2 = np.random.rand(1,)[0] # maybe not random
-    # for some reason if the 2 lines above are uncommented it gives better results
     
     for iteration in range(max_iter):
         if iteration % 10 == 0:
@@ -100,6 +127,7 @@ def pso_min_cost(num_particles: int, ann: ANN, max_iter: int, **kwargs):
                                                         c1=c1,  
                                                         c2=c2)
                 particles_position[i] = particles_position[i] + particles_velocity[i]
+
         ann.finished_batch = False
 
     return {
@@ -109,6 +137,7 @@ def pso_min_cost(num_particles: int, ann: ANN, max_iter: int, **kwargs):
             "c1": c1,
             "c2": c2
             }
+
 
 
 
@@ -134,14 +163,15 @@ def pso_max_accuracy(num_particles: int, ann: ANN, max_iter: int, **kwargs):
     particle_position_gbest_accuracy = np.max(particles_position_pbest_accuracy)
     
     particle_gbest_inertia = None
-
+    standard_deviation = None
+    called = 0
     for iteration in range(max_iter):
         if iteration % 10 == 0:
+            standard_deviation = standard_deviation_func(particles_accuracy)
             print (f"\t- Iteration: {iteration}")
         while not ann.finished_batch:
             particles_accuracy = get_particles_accuracy(particles_position=particles_position, ann=ann)
             particles_cost = get_particles_cost(particles_position=particles_position, ann=ann, take_sample=False)
-            # quiero guardar el costo pero si la descomento tarda mucho
             for i in range(num_particles):
                 if particles_accuracy[i] > particles_position_pbest_accuracy[i]:
                     particles_position_pbest[i] = particles_position[i]
@@ -161,6 +191,18 @@ def pso_max_accuracy(num_particles: int, ann: ANN, max_iter: int, **kwargs):
                                                         c1=c1,
                                                         c2=c2)
                 particles_position[i] = particles_position[i] + particles_velocity[i]
+
+        write_evolution(
+            standard_deviation=standard_deviation,
+            particles_position=particles_position,
+            particles_accuracy=particles_accuracy,
+            particles_cost=particles_cost,
+            particles_velocity=particles_velocity,
+            iteration=iteration,
+            step=1,
+            experiment_id=kwargs.get("experiment_id")
+        )
+        called += 1
         ann.finished_batch = False
 
     return {
