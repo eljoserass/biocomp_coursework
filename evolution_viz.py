@@ -24,9 +24,9 @@ args = parser.parse_args()
 
 experiment_id = 0 if args.experiment_id == None else args.experiment_id
 
-folder_path = f"evolution_viz/{experiment_id}"
+folder_path = f"./evolution_viz/{experiment_id}"
 
-if not os.path.exists(f"./evolution_viz/{experiment_id}"):
+if not os.path.exists(folder_path):
     print ("No experiments made")
     exit (84)
 
