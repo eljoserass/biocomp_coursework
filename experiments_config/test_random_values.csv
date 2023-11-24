@@ -1,0 +1,7 @@
+particles,iterations,objective,architecture,cost_fn,inertia,c1,c2,batch_size,seed
+10,300,max_accuracy,tanh:8;relu:4;sigmoid:2;softmax:2,cross-entropy,,,,,4
+10,300,max_accuracy,tanh:8;relu:4;sigmoid:2;softmax:2,cross-entropy,,,,,4
+10,300,max_accuracy,tanh:8;relu:4;sigmoid:2;softmax:2,cross-entropy,,,,,4
+10,300,max_accuracy,tanh:8;relu:4;sigmoid:2;softmax:2,cross-entropy,,,,,4
+10,300,max_accuracy,tanh:8;relu:4;sigmoid:2;softmax:2,cross-entropy,,,,,4
+10,300,max_accuracy,tanh:8;relu:4;sigmoid:2;softmax:2,cross-entropy,,,,,4

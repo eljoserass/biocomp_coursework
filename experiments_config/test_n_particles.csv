@@ -1,0 +1,8 @@
+particles,iterations,objective,architecture,cost_fn,inertia,c1,c2,batch_size,seed
+1,50,max_accuracy,tanh:8;relu:4;sigmoid:2;softmax:2,cross-entropy,0.9670298390136767,0.7793829217937525,0.19768507460025309,,4
+5,50,max_accuracy,tanh:8;relu:4;sigmoid:2;softmax:2,cross-entropy,0.9670298390136767,0.7793829217937525,0.19768507460025309,,4
+10,50,max_accuracy,tanh:8;relu:4;sigmoid:2;softmax:2,cross-entropy,0.9670298390136767,0.7793829217937525,0.19768507460025309,,4
+20,50,max_accuracy,tanh:8;relu:4;sigmoid:2;softmax:2,cross-entropy,0.9670298390136767,0.7793829217937525,0.19768507460025309,,4
+30,50,max_accuracy,tanh:8;relu:4;sigmoid:2;softmax:2,cross-entropy,0.9670298390136767,0.7793829217937525,0.19768507460025309,,4
+100,50,max_accuracy,tanh:8;relu:4;sigmoid:2;softmax:2,cross-entropy,0.9670298390136767,0.7793829217937525,0.19768507460025309,,4
+200,50,max_accuracy,tanh:8;relu:4;sigmoid:2;softmax:2,cross-entropy,0.9670298390136767,0.7793829217937525,0.19768507460025309,,4

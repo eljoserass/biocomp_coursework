@@ -3,6 +3,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from experiment_suite import run_experiments
 import numpy as np
+import os
 
 
 df_banknote = pd.read_csv("data_banknote_authentication.csv",  header=None)
@@ -18,5 +19,11 @@ and iterating through different .csv configs
 """
 
 
-run_experiments(X_train, X_test, y_train, y_test, config_path="config1.csv", session_name="diff_min_max", db_path="test.csv", evolution_viz=True)
+all_files = os.listdir("./experiments_config")
+
+csv_files_without_extension = [os.path.splitext(file)[0] for file in all_files if file.endswith(".csv")]
+
+for i in range(len(all_files)):
+    print (f"config : {all_files[i]}")
+    run_experiments(X_train, X_test, y_train, y_test, config_path=f"./experiments_config/{all_files[i]}", session_name=csv_files_without_extension[i], db_path="experiments_db.csv", evolution_viz=False)
 

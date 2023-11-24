@@ -153,7 +153,7 @@ class ANN:
         self.parse_output_functions = {
                 'sigmoid': lambda o: o > 0.5,
                 'softmax': lambda o: np.argmax(o, axis=1),
-                'tanh': lambda o: o,
+                'tanh': lambda o: o >= 0,
                 'relu': lambda o: o
         }
     
