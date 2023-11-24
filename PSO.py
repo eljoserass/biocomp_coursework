@@ -164,7 +164,6 @@ def pso_max_accuracy(num_particles: int, ann: ANN, max_iter: int, **kwargs):
     
     particle_gbest_inertia = None
     standard_deviation = None
-    called = 0
     for iteration in range(max_iter):
         if iteration % 10 == 0:
             standard_deviation = standard_deviation_func(particles_accuracy)
@@ -202,7 +201,6 @@ def pso_max_accuracy(num_particles: int, ann: ANN, max_iter: int, **kwargs):
             step=1,
             experiment_id=kwargs.get("experiment_id")
         )
-        called += 1
         ann.finished_batch = False
 
     return {

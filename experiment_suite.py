@@ -4,10 +4,16 @@ import numpy as np
 from ANN import ANN, create_layer
 from PSO import pso_min_cost, pso_max_accuracy
 
+"""
+Useful tools to automatically run experiments
+"""
+
+# Return time in desired format str
 def get_time_str() -> str:
     now = datetime.now()
     return now.strftime("%d/%m/%Y-%H:%M:%S")
 
+# Parse architecture list of layer from ann to str
 def architecture_to_str(architecture: list) -> str:
     result_str: str = f"n_layers:{len(architecture)}"
     for layer in architecture:
@@ -16,30 +22,51 @@ def architecture_to_str(architecture: list) -> str:
         result_str += ":"
         result_str += layer.n_perceptrons
 
+# Write the results of the experiments in the desired .csv path
 def write_experiments(results: dict,
                       db_path: str
                   ) -> pd.DataFrame:
     import pathlib
     df = pd.DataFrame(results)
-    # TODO check if file is created and if header is created
     csvfile = pathlib.Path(db_path)
     df.to_csv(db_path, mode='a', index=False, header=not csvfile.exists())
     return df
 
-def str_to_layers(architecture_str: str):
+# Transform str format of architecture into callable list with Layer obejcts to initialize and ANN
+def str_to_layers(architecture_str: str) -> list:
     layers_str = architecture_str.split(";")
     layers = []
     for layer in layers_str:
         layer_config = layer.split(":")
         layers.append(create_layer(function=layer_config[0], n_perceptrons=int(layer_config[1])))
     return layers
-        
-def get_output_activation(architecture_str: str):
+ 
+# Get the output activation used in the architecutre       
+def get_output_activation(architecture_str: str) -> str:
     layers = architecture_str.split(";")
     return layers[-1].split(":")[0]
     
+# Main  function to run experiments
+def run_experiments(X_train, 
+                    X_test, 
+                    y_train,
+                    y_test, 
+                    config_path: str, 
+                    session_name: str = "", 
+                    db_path="experiments_db.csv", 
+                    evolution_viz = False):
+    
+    """
+    X_train: features to train
+    X_test: features to validate
+    y_train: output to train
+    y_test: output to validate
+    config_path: path of the .csv file with the experiment 
+    session_name: name of the session of related experiments
+    db_path: path to write the results
+    evolution_viz: parameter to set up if each iteration will be writen to evolution_viz
+    """
 
-def run_experiments(X_train, X_test, y_train, y_test, config_path: str, session_name: str = "", db_path="experiments_db.csv", evolution_viz = False):
     config = pd.read_csv(config_path)
     results = {
         "particle_cost": [],
@@ -101,6 +128,3 @@ def run_experiments(X_train, X_test, y_train, y_test, config_path: str, session_
         print ("----------------")
     print ("\nExperiments Done!")
     write_experiments(db_path=db_path, results=results)
-
-
-# def write_particle_cost_over_t
