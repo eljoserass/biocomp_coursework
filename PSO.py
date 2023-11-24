@@ -184,7 +184,7 @@ def pso_max_accuracy(num_particles: int, ann: ANN, max_iter: int, **kwargs):
                     particles_cost=particles_cost,
                     particles_velocity=particles_velocity,
                     iteration=iteration,
-                    step=3,
+                    step=1,
                     experiment_id=kwargs.get("experiment_id")
                 )
         ann.finished_batch = False
