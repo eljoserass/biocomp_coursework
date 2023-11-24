@@ -2,6 +2,7 @@ import pandas as pd
 import argparse
 import matplotlib.pyplot as plt
 import seaborn as sns
+import sys
 
 
 """
@@ -18,7 +19,9 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument('-v', '--viz-name', choices=['line-cost', 'line-accuracy', 'scatter', 
                                                  'box', 'bar-iterations', 'bar-objective',
-                                                 'pair', 'heatmap', 'violin', '3d'])  
+                                                 'pair', 'heatmap', 'violin', '3d'], required=True)
+
+parser.add_argument('-s', '--session-name')  
 
 def line_cost(df):
     plt.figure(figsize=(10, 6))
@@ -145,6 +148,14 @@ viz_dict = {
 }
 
 args = parser.parse_args()
+
+
+# Check if session name is passed
+unique_session_name = df["session_name"].unique()
+if "session_name" in args:
+    if args.session_name in unique_session_name:
+        df = df[df["session_name"] == args.session_name]
+        print (args.session_name)
 
 # Call Selected function by the user and pass dataframe
 viz_dict[args.viz_name](df)
